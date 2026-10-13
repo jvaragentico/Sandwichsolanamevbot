@@ -27,18 +27,18 @@
         <div><div class="eyebrow">LIVE SANDWICH PATTERN MONITOR</div><h1>Only the pattern.<br><em>As it lands.</em></h1><p>The scanner watches confirmed Pump and PumpSwap transactions. This feed displays only three-trade sequences matching the sandwich pattern.</p></div>
         <div class="hero-graphic" aria-hidden="true"><div class="orb orb-one"></div><div class="orb orb-two"></div><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="center-glyph">◈</div></div>
       </section>
-      <div class="notice"><span class="notice-icon">ⓘ</span><div><strong>Observed patterns, not pending opportunities</strong><span>Each candidate requires an on-chain front trade, middle trade and reverse trade in distinct slots. The pattern alone does not prove intent or profit.</span></div></div>
+      <div class="notice"><span class="notice-icon">ⓘ</span><div><strong>Suspected sandwiches · linked on-chain evidence</strong><span>Three ordered trades in the same pool: one wallet trades before and reverses after another wallet. Includes same-slot sequences. Intent and profit are unverified.</span></div></div>
 
       <section class="metrics" aria-label="Scanner metrics">
         <article class="metric"><span>Scanner status</span><strong id="metric-connection">Connecting</strong><small id="metric-subscriptions">0 subscriptions</small></article>
         <article class="metric"><span>Swaps parsed</span><strong id="metric-trades">0</strong><small>Internal detection input</small></article>
-        <article class="metric"><span>Patterns found</span><strong id="metric-candidates">0</strong><small>Only matches shown below</small></article>
-        <article class="metric"><span>Skipped / gaps</span><strong id="metric-dropped">0</strong><small id="metric-last">Last swap: —</small></article>
+        <article class="metric"><span>Suspected sandwiches</span><strong id="metric-candidates">0</strong><small>Up to 100 retained per session</small></article>
+        <article class="metric"><span>Skipped blocks / gaps</span><strong id="metric-dropped">0</strong><small id="metric-last">Last swap: —</small></article>
       </section>
 
       <section class="grid hosted-grid">
         <article class="panel" id="patterns"><div class="panel-heading"><div><div class="eyebrow">MATCHED ACTIVITY</div><h2>Observed sandwich patterns</h2></div><span class="live-chip degraded" id="stream-chip"><span class="pulse"></span><span id="stream-label">CONNECTING</span></span></div>
-          <p class="panel-copy">Only matching front → middle → back sequences appear here. Open the transaction signatures to inspect the chain evidence.</p>
+          <p class="panel-copy">Only suspected sandwiches appear here. Each card links all three transactions, the shared pool and the matching wallet. Positions (#) are one-based within the block. Latest 30 shown.</p>
           <div class="candidate-list hosted-candidates" id="candidate-list"><div class="empty-card">Scanning mainnet for matching sequences…</div></div>
         </article>
         <div class="right-col">
@@ -55,4 +55,3 @@
   </div>
 </body>
 </html>
-

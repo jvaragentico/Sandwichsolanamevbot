@@ -8,6 +8,7 @@ for (const [route,file,type] of [
   ['/style.css','style.css','text/css; charset=utf-8'],
   ['/app.js','app.js','text/javascript; charset=utf-8'],
   ['/analyzer.js','analyzer.js','text/javascript; charset=utf-8'],
+  ['/layouts.js','layouts.js','text/javascript; charset=utf-8'],
 ]) {
   assets[route] = { body: await readFile(resolve(root,'hosted',file),'utf8'), type };
 }
@@ -21,4 +22,3 @@ await mkdir(resolve(root,'dist/.openai'),{recursive:true});
 await writeFile(resolve(root,'dist/server/index.js'),`const ASSETS = ${JSON.stringify(assets)};\n${worker}`);
 await writeFile(resolve(root,'dist/.openai/hosting.json'),manifest);
 console.log('Built Sites Worker artifact');
-
