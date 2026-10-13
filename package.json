@@ -1,0 +1,17 @@
+{
+  "name": "pump-flow-observer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node test/analyzer.test.mjs",
+    "build:hosted": "node scripts/build-hosted.mjs",
+    "test:hosted": "node scripts/validate-hosted.mjs",
+    "preview:hosted": "node scripts/preview-hosted.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
+

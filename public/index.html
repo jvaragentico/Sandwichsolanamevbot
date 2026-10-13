@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0d14">
+  <title>Pump Flow Observer</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brandmark">◈</div><div><strong>FLOW<span>WATCH</span></strong><small>SOLANA / PUMP ECOSYSTEM</small></div></div>
+      <nav aria-label="Main navigation">
+        <a class="active" href="#overview">◉ <span>Overview</span></a>
+        <a href="#trades">↗ <span>Live trades</span></a>
+        <a href="#patterns">◇ <span>Pattern candidates</span></a>
+        <a href="#settings">⚙ <span>Detection settings</span></a>
+      </nav>
+      <div class="sidebar-bottom"><div class="dot" id="sidebar-dot"></div><span id="sidebar-status">Connecting to Solana</span><small>Confirmed chain · read only</small></div>
+    </aside>
+
+    <main id="overview">
+      <header class="topbar"><div class="crumb">Workspace <span>/</span> Pump Flow Observer</div><div class="chain-pill"><span class="pulse"></span> SOLANA MAINNET</div></header>
+      <section class="hero">
+        <div><div class="eyebrow">REAL TIME CHAIN INTELLIGENCE</div><h1>See the flow.<br><em>Know the pattern.</em></h1><p>Confirmed Pump and PumpSwap activity, classified as it lands. Cross-slot trade sequences are surfaced with on-chain evidence.</p></div>
+        <div class="hero-graphic" aria-hidden="true"><div class="orb orb-one"></div><div class="orb orb-two"></div><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="center-glyph">◈</div></div>
+      </section>
+
+      <div class="notice"><span class="notice-icon">ⓘ</span><div><strong>Confirmed-chain view</strong><span>This monitor observes landed transactions. Candidate patterns are heuristics, not proof of a sandwich or a profit estimate.</span></div></div>
+
+      <section class="metrics" aria-label="Scanner metrics">
+        <article class="metric"><span>Connection</span><strong id="metric-connection">Connecting</strong><small id="metric-subscriptions">0 / 2 subscriptions</small></article>
+        <article class="metric"><span>Trades observed</span><strong id="metric-trades">0</strong><small>Pump + PumpSwap</small></article>
+        <article class="metric"><span>Pattern candidates</span><strong id="metric-candidates">0</strong><small>Cross-slot sequence</small></article>
+        <article class="metric"><span>Last trade</span><strong id="metric-last">—</strong><small id="metric-queue">Queue: 0</small></article>
+      </section>
+
+      <section class="grid">
+        <article class="panel trade-panel" id="trades"><div class="panel-heading"><div><div class="eyebrow">STREAM</div><h2>Live trades</h2></div><span class="live-chip" id="stream-chip"><span class="pulse"></span><span id="stream-label">CONNECTING</span></span></div>
+          <div class="filters"><label><span class="sr-only">Search mint</span><input id="search" placeholder="Search mint or wallet" autocomplete="off"></label><label><span class="sr-only">Venue</span><select id="venue"><option value="all">All venues</option><option value="Pump">Pump curve</option><option value="PumpSwap">PumpSwap</option></select></label></div>
+          <div class="table-wrap"><table><thead><tr><th>Trade</th><th>Token / wallet</th><th>Amount</th><th>Slot</th><th>Time</th></tr></thead><tbody id="trades-body"><tr><td colspan="5" class="empty">Waiting for confirmed swaps…</td></tr></tbody></table></div>
+        </article>
+
+        <div class="right-col">
+          <article class="panel" id="patterns"><div class="panel-heading"><div><div class="eyebrow">DETECTION</div><h2>Pattern candidates</h2></div><span class="count-badge" id="candidate-badge">0</span></div><p class="panel-copy">Same wallet trades around another wallet on the same token, across distinct slots.</p><div id="candidate-list" class="candidate-list"><div class="empty-card">Watching for cross-slot sequences.</div></div></article>
+          <article class="panel settings-panel" id="settings"><div class="panel-heading"><div><div class="eyebrow">BUILDER</div><h2>Detection settings</h2></div></div><label class="setting-row" for="max-slots"><span><strong>Maximum slot window</strong><small>Front to back leg, 2–16 slots</small></span><input id="max-slots" type="number" min="2" max="16" step="1" value="8"></label><button id="save-settings">Apply window</button><p id="setting-feedback" role="status"></p></article>
+        </div>
+      </section>
+      <footer><span>FLOWWATCH · CONFIRMED DATA ONLY</span><span id="error-text">No scanner errors</span></footer>
+    </main>
+  </div>
+</body>
+</html>
+

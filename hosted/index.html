@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0d14">
+  <title>Flowwatch · Pump sandwich patterns</title>
+  <meta name="description" content="Live, read-only monitoring of observed sandwich patterns on Solana Pump and PumpSwap.">
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brandmark">◈</div><div><strong>FLOW<span>WATCH</span></strong><small>SOLANA / PUMP ECOSYSTEM</small></div></div>
+      <nav aria-label="Main navigation">
+        <a class="active" href="#overview">◉ <span>Overview</span></a>
+        <a href="#patterns">◇ <span>Sandwich patterns</span></a>
+        <a href="#settings">⚙ <span>Scanner settings</span></a>
+      </nav>
+      <div class="sidebar-bottom"><div class="dot" id="sidebar-dot"></div><span id="sidebar-status">Connecting to mainnet</span><small>Confirmed chain · read only</small></div>
+    </aside>
+
+    <main id="overview">
+      <header class="topbar"><div class="crumb">Workspace <span>/</span> Pump Flowwatch</div><div class="chain-pill"><span class="pulse"></span> SOLANA MAINNET</div></header>
+      <section class="hero">
+        <div><div class="eyebrow">LIVE SANDWICH PATTERN MONITOR</div><h1>Only the pattern.<br><em>As it lands.</em></h1><p>The scanner watches confirmed Pump and PumpSwap transactions. This feed displays only three-trade sequences matching the sandwich pattern.</p></div>
+        <div class="hero-graphic" aria-hidden="true"><div class="orb orb-one"></div><div class="orb orb-two"></div><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="center-glyph">◈</div></div>
+      </section>
+      <div class="notice"><span class="notice-icon">ⓘ</span><div><strong>Observed patterns, not pending opportunities</strong><span>Each candidate requires an on-chain front trade, middle trade and reverse trade in distinct slots. The pattern alone does not prove intent or profit.</span></div></div>
+
+      <section class="metrics" aria-label="Scanner metrics">
+        <article class="metric"><span>Scanner status</span><strong id="metric-connection">Connecting</strong><small id="metric-subscriptions">0 subscriptions</small></article>
+        <article class="metric"><span>Swaps parsed</span><strong id="metric-trades">0</strong><small>Internal detection input</small></article>
+        <article class="metric"><span>Patterns found</span><strong id="metric-candidates">0</strong><small>Only matches shown below</small></article>
+        <article class="metric"><span>Skipped / gaps</span><strong id="metric-dropped">0</strong><small id="metric-last">Last swap: —</small></article>
+      </section>
+
+      <section class="grid hosted-grid">
+        <article class="panel" id="patterns"><div class="panel-heading"><div><div class="eyebrow">MATCHED ACTIVITY</div><h2>Observed sandwich patterns</h2></div><span class="live-chip degraded" id="stream-chip"><span class="pulse"></span><span id="stream-label">CONNECTING</span></span></div>
+          <p class="panel-copy">Only matching front → middle → back sequences appear here. Open the transaction signatures to inspect the chain evidence.</p>
+          <div class="candidate-list hosted-candidates" id="candidate-list"><div class="empty-card">Scanning mainnet for matching sequences…</div></div>
+        </article>
+        <div class="right-col">
+          <article class="panel status-panel"><div class="panel-heading"><div><div class="eyebrow">SOURCE</div><h2>Live chain connection</h2></div></div><div class="status-detail"><span>Network</span><strong>Solana mainnet</strong></div><div class="status-detail"><span>Programs</span><strong>Pump + PumpSwap</strong></div><div class="status-detail"><span>Commitment</span><strong>Confirmed</strong></div><div class="status-detail"><span>Mode</span><strong>Same-origin RPC · read only</strong></div><p class="panel-copy status-copy" id="scanner-error">Waiting for data.</p></article>
+          <article class="panel settings-panel" id="settings"><div class="panel-heading"><div><div class="eyebrow">CONFIGURE</div><h2>Scanner settings</h2></div></div>
+            <label class="hosted-setting"><span>Watch one mint (optional)</span><input id="watch-mint" spellcheck="false" placeholder="Leave empty for both full programs"></label>
+            <label class="hosted-setting"><span>Maximum slot window</span><input id="max-slots" type="number" min="2" max="16" step="1" value="8"></label>
+            <button id="save-settings">Restart scanner with settings</button><p id="setting-feedback" role="status"></p>
+          </article>
+        </div>
+      </section>
+      <footer><span>FLOWWATCH · REAL MAINNET DATA · NO TRANSACTION SUBMISSION</span><span>Public RPC may throttle full-program coverage</span></footer>
+    </main>
+  </div>
+</body>
+</html>
+
