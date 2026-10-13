@@ -8,6 +8,9 @@
   <meta name="description" content="Live, read-only monitoring of observed sandwich patterns on Solana Pump and PumpSwap.">
   <link rel="stylesheet" href="./style.css">
   <script type="module" src="./app.js"></script>
+  <script type="module" src="./simulation-ui.js"></script>
+  <script type="module" src="./jito-ui.js"></script>
+  <script type="module" src="./bundle-ui.js"></script>
 </head>
 <body>
   <div class="shell">
@@ -16,6 +19,8 @@
       <nav aria-label="Main navigation">
         <a class="active" href="#overview">◉ <span>Overview</span></a>
         <a href="#patterns">◇ <span>Sandwich patterns</span></a>
+        <a href="#simulation">▷ <span>Cross-slot simulator</span></a>
+        <a href="#bundles">▣ <span>Bundle monitor</span></a>
         <a href="#settings">⚙ <span>Scanner settings</span></a>
       </nav>
       <div class="sidebar-bottom"><div class="dot" id="sidebar-dot"></div><span id="sidebar-status">Connecting to mainnet</span><small>Confirmed chain · read only</small></div>
@@ -50,7 +55,58 @@
           </article>
         </div>
       </section>
-      <footer><span>FLOWWATCH · REAL MAINNET DATA · NO TRANSACTION SUBMISSION</span><span>Public RPC may throttle full-program coverage</span></footer>
+      <section class="panel simulation-panel" id="simulation" aria-labelledby="sim-title">
+        <div class="panel-heading"><div><div class="eyebrow">CONTROLLED EXPERIMENT</div><h2 id="sim-title">Cross-slot simulator</h2></div><span class="simulation-badge">SYNTHETIC · LOCAL ONLY</span></div>
+        <p class="panel-copy">Replay controlled trades through the live scanner's decoder and detector. These fixtures run in your browser; they are not mainnet or Devnet transactions and do not change the live counters.</p>
+        <form id="sim-form">
+          <div class="sim-controls">
+            <label>Scenario<select id="sim-scenario"><option value="cross">Cross-slot sequence</option><option value="same">Same-slot sequence</option><option value="missing">Missing middle block</option><option value="pool">Different middle pool</option><option value="wallet">Different closing wallet</option><option value="order">Reversed on-chain order</option></select></label>
+            <label>Venue<select id="sim-venue"><option value="PumpSwap">PumpSwap</option><option value="Pump">Pump bonding curve</option></select></label>
+            <label>Slots between legs<input id="sim-gap" type="number" min="1" max="12" step="1" value="2" required></label>
+            <label>Detection window (slots)<input id="sim-window" type="number" min="2" max="16" step="1" value="8" required></label>
+          </div>
+          <div class="sim-report" aria-live="polite">
+            <h3 id="sim-result">Ready</h3><p id="sim-explanation"></p><p id="sim-count"></p>
+            <div id="sim-timeline" class="sim-timeline"></div>
+          </div>
+          <div class="sim-accounting">
+            <h3>Profitability evidence worksheet</h3>
+            <p>Enter hypothetical cash flows for Wallet A. This checks arithmetic, not market prices, slippage, or execution success. Slot settings do not determine these amounts.</p>
+            <div class="sim-money">
+              <label>Entry cost · SOL<input id="sim-entry" type="text" inputmode="decimal" value="1" required><small>Including DEX fees and slippage</small></label>
+              <label>Exit proceeds · SOL<input id="sim-exit" type="text" inputmode="decimal" value="1.01" required><small>After DEX fees and slippage</small></label>
+              <label>Network fees · SOL<input id="sim-fees" type="text" inputmode="decimal" value="0.002" required></label>
+              <label>Tips · SOL<input id="sim-tips" type="text" inputmode="decimal" value="0.001" required></label>
+              <label>Other costs · SOL<input id="sim-other" type="text" inputmode="decimal" value="0" required><small>Failed attempts, net rent and other costs</small></label>
+            </div>
+            <div class="sim-checks"><label><input type="checkbox" id="sim-closed"> All position inventory is closed</label><label><input type="checkbox" id="sim-costs"> All costs are included in these assumptions</label></div>
+            <div class="sim-accounting-result" aria-live="polite"><div><small id="sim-pnl-label">Not calculated</small><strong id="sim-pnl">—</strong></div><div><small>Live profitability</small><strong class="sim-unproven">UNPROVEN</strong></div></div>
+            <p id="sim-accounting-note"></p><p class="sim-formula">Exit proceeds − entry cost − network fees − tips − other costs</p>
+          </div>
+          <div class="sim-actions"><button type="submit">Run simulation &amp; accounting</button><button id="sim-export" type="button" disabled>Export report JSON</button><span id="sim-freshness" role="status"></span></div>
+          <p id="sim-error" role="alert"></p>
+        </form>
+      </section>
+      <section class="panel simulation-panel" id="jito-analysis" aria-labelledby="jito-title">
+        <div class="panel-heading"><div><div class="eyebrow">JITO MEV-BOT INTEGRATION</div><h2 id="jito-title">Trade-log evidence</h2></div><span class="simulation-badge">LOCAL CSV ANALYSIS</span></div>
+        <p class="panel-copy">Import trades.csv from <a href="https://github.com/jito-labs/mev-bot/tree/f02016bb646a99a3542cfd54cb7e13160d96289e" target="_blank" rel="noopener noreferrer">Jito's backrun arbitrage bot</a>. Its analysis notebook is pinned in this project under Apache-2.0. Files are processed in your browser and are not uploaded.</p>
+        <p class="panel-copy">The upstream bot is unmaintained and has no Pump adapter. This integration analyzes its logs; it does not run its trading engine. <a href="https://docs.jito.wtf/lowlatencytxnsend/#bundles-api-v1" target="_blank" rel="noopener noreferrer">Jito bundles execute within one slot</a>; a cross-slot simulation is not an atomic Jito bundle.</p>
+        <div class="jito-import"><label for="jito-file">Select Jito trades.csv · up to 2 MB</label><input id="jito-file" type="file" accept=".csv,text/csv"><div class="sim-actions"><button id="jito-export" type="button" disabled>Export analysis JSON</button></div><p id="jito-error" role="alert"></p><div id="jito-results" aria-live="polite"></div></div>
+      </section>
+      <section class="panel simulation-panel" id="bundles" aria-labelledby="bundle-title">
+        <div class="panel-heading"><div><div class="eyebrow">JITO BUNDLES</div><h2 id="bundle-title">Bundle monitor &amp; rule model</h2></div><span class="simulation-badge">READ ONLY</span></div>
+        <p class="panel-copy">Look up an existing mainnet bundle ID. Receipt history is limited; recent inflight status covers roughly five minutes. Unknown does not mean failed. Status checks run when you press Look up. <a href="https://docs.jito.wtf/lowlatencytxnsend/" target="_blank" rel="noopener noreferrer">API documentation</a></p>
+        <form id="bundle-lookup"><div class="sim-controls">
+          <label>Bundle ID<input id="bundle-id" type="text" maxlength="64" placeholder="64-character hexadecimal ID" required></label>
+          <label>Status source<select id="bundle-mode"><option value="receipts">Receipt history + transaction links</option><option value="inflight">Recent inflight status</option></select></label>
+        </div><div class="sim-actions"><button type="submit">Look up bundle</button></div><p id="bundle-status" role="status">Enter an existing bundle ID to check.</p><div id="bundle-results" aria-live="polite"></div></form>
+        <h3>Local bundle rule simulation</h3><p class="panel-copy">Synthetic inputs only: one to five ordered transactions within a single slot. Model a failure to see the all-or-nothing result. This does not execute transaction bytecode or submit a bundle.</p>
+        <form id="bundle-sim"><div class="sim-controls">
+          <label>Transaction slots, in order<input id="bundle-slots" type="text" value="1000,1000,1000" required></label>
+          <label>Fail transaction # (0 = none)<input id="bundle-fail" type="number" min="0" max="5" step="1" value="0" required></label>
+        </div><div class="sim-actions"><button type="submit">Run bundle rule model</button></div><p id="bundle-sim-result" role="status"></p></form>
+      </section>
+      <footer><span>FLOWWATCH · MAINNET MONITOR + LABELED SYNTHETIC SIMULATION</span><span>Public RPC may throttle full-program coverage</span></footer>
     </main>
   </div>
 </body>

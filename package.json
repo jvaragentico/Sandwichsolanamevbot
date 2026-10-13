@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node src/server.mjs",
-    "test": "node test/analyzer.test.mjs && node test/scanner.test.mjs",
+    "test": "node test/analyzer.test.mjs && node test/scanner.test.mjs && node test/simulation.test.mjs && node test/jito-analysis.test.mjs && node test/bundles.test.mjs",
     "build:hosted": "node scripts/build-hosted.mjs",
     "test:hosted": "node scripts/validate-hosted.mjs",
     "preview:hosted": "node scripts/preview-hosted.mjs"

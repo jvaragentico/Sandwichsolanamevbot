@@ -34,6 +34,22 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (request.method !== 'GET') return response(405,{error:'Method not allowed'});
+    if (url.pathname === '/api/bundle') {
+      const id=url.searchParams.get('id')||'',mode=url.searchParams.get('mode')||'receipts';
+      if(!/^[a-f0-9]{64}$/.test(id)||!['receipts','inflight'].includes(mode))return response(400,{error:'Invalid bundle ID or status mode'});
+      const method=mode==='inflight'?'getInflightBundleStatuses':'getBundleStatuses';
+      try {
+        const upstream=await fetch(`https://mainnet.block-engine.jito.wtf/api/v1/${method}`,{
+          method:'POST',headers:{'content-type':'application/json'},
+          body:JSON.stringify({jsonrpc:'2.0',id:1,method,params:[[id]]}),signal:AbortSignal.timeout(10000),
+        });
+        if(!upstream.ok)return response(upstream.status===429?429:502,{error:`Jito status service HTTP ${upstream.status}`});
+        const data=await upstream.json();
+        if(data.error)return response(502,{error:`Jito status error: ${data.error.message||data.error.code}`});
+        if(!Object.hasOwn(data,'result'))return response(502,{error:'Jito response has no result'});
+        return response(200,{result:data.result});
+      }catch{return response(502,{error:'Jito status service unavailable or timed out'});}
+    }
     if (url.pathname === '/api/signatures') {
       const address = url.searchParams.get('address') || '';
       if (!addressPattern.test(address)) return response(400,{error:'Invalid address'});

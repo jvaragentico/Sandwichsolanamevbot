@@ -11,6 +11,10 @@ assert.equal(typeof worker.default.fetch,'function');
 const home = await worker.default.fetch(new Request('https://example.test/'),{});
 assert.equal(home.status,200);
 assert.match(await home.text(),/Observed sandwich patterns/);
+for(const path of ['/simulation.js','/simulation-ui.js','/jito-analysis.js','/jito-ui.js','/bundles.js','/bundle-ui.js']){
+  const asset=await worker.default.fetch(new Request(`https://example.test${path}`),{});
+  assert.equal(asset.status,200);assert.match(asset.headers.get('content-type'),/javascript/);
+}
 const rejected = await worker.default.fetch(new Request('https://example.test/api/signatures?address=bad'),{});
 assert.equal(rejected.status,400);
 const invalidSlot=await worker.default.fetch(new Request('https://example.test/api/block?slot=-1'),{});
@@ -32,6 +36,26 @@ try {
   globalThis.fetch=async()=>new Response('',{status:429});
   const limited=await worker.default.fetch(new Request('https://example.test/api/block?slot=101'),{});
   assert.equal(limited.status,429);
+} finally { globalThis.fetch=originalFetch; }
+try {
+  const id='a'.repeat(64);
+  for(const mode of ['receipts','inflight']){
+    const method=mode==='receipts'?'getBundleStatuses':'getInflightBundleStatuses';
+    globalThis.fetch=async(url,options)=>{
+      assert.equal(url,`https://mainnet.block-engine.jito.wtf/api/v1/${method}`);
+      assert.deepEqual(JSON.parse(options.body),{jsonrpc:'2.0',id:1,method,params:[[id]]});
+      return Response.json({result:{value:[]}});
+    };
+    const status=await worker.default.fetch(new Request(`https://example.test/api/bundle?id=${id}&mode=${mode}`),{});
+    assert.equal(status.status,200);assert.deepEqual((await status.json()).result.value,[]);
+  }
+  const invalid=await worker.default.fetch(new Request('https://example.test/api/bundle?id=bad'),{});assert.equal(invalid.status,400);
+  const forbidden=await worker.default.fetch(new Request(`https://example.test/api/bundle?id=${id}&mode=sendBundle`),{});assert.equal(forbidden.status,400);
+  const post=await worker.default.fetch(new Request('https://example.test/api/bundle',{method:'POST'}),{});assert.equal(post.status,405);
+  globalThis.fetch=async()=>new Response('',{status:429});
+  assert.equal((await worker.default.fetch(new Request(`https://example.test/api/bundle?id=${id}`),{})).status,429);
+  globalThis.fetch=async()=>Response.json({error:{message:'Unavailable'}});
+  assert.equal((await worker.default.fetch(new Request(`https://example.test/api/bundle?id=${id}`),{})).status,502);
 } finally { globalThis.fetch=originalFetch; }
 console.log('Worker artifact and routes validated');
 

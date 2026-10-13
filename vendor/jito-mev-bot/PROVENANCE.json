@@ -1,0 +1,16 @@
+{
+  "repository": "https://github.com/jito-labs/mev-bot",
+  "commit": "f02016bb646a99a3542cfd54cb7e13160d96289e",
+  "license": "Apache-2.0",
+  "files": [
+    {
+      "path": "LICENSE",
+      "sha256": "c1bfcace4b6c3f520b621f4ce0edca75d2480fd42dfce74e0de23fc92803646d"
+    },
+    {
+      "path": "analyze/trades.ipynb",
+      "sha256": "884cc2f22736f75a8cd0fb6433530d5a50f2f7234c537192d4eb27f6be128b5e"
+    }
+  ],
+  "integration": "Browser-local trades.csv analysis adapted from analyze/trades.ipynb; no upstream execution engine is loaded."
+}
