@@ -1,6 +1,6 @@
 import { PROGRAMS, extractBlockTrades, SandwichDetector } from './analyzer.js';
 
-const names = ['sidebar-dot','sidebar-status','metric-connection','metric-subscriptions','metric-trades','metric-candidates','metric-dropped','metric-last','stream-chip','stream-label','candidate-list','scanner-error','watch-mint','max-slots','save-settings','setting-feedback'];
+const names = ['sidebar-dot','sidebar-status','metric-connection','metric-subscriptions','metric-trades','metric-candidates','metric-dropped','metric-last','stream-chip','stream-label','candidate-list','scanner-error','rpc-mode','watch-mint','max-slots','save-settings','setting-feedback'];
 const ui = Object.fromEntries(names.map(id => [id, document.getElementById(id)]));
 const compact = value => value ? `${value.slice(0,6)}…${value.slice(-5)}` : '—';
 const clock = value => value ? new Intl.DateTimeFormat(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(value) : '—';
@@ -21,9 +21,26 @@ class BrowserScanner {
   }
   stop(){this.running=false;clearTimeout(this.timer);this.abort.abort();}
   async getJson(path){
-    const response=await fetch(path,{signal:AbortSignal.any([this.abort.signal,AbortSignal.timeout(20000)]),cache:'no-store'});
+    const signal=AbortSignal.any([this.abort.signal,AbortSignal.timeout(20000)]);
+    let response;
+    if(this.useBrowserRpc){
+      const url=new URL(path,location.origin);
+      const query=url.pathname==='/api/signatures'?
+        {method:'getSignaturesForAddress',params:[url.searchParams.get('address'),{limit:40,commitment:'confirmed'}]}:
+        {method:'getBlock',params:[Number(url.searchParams.get('slot')),{encoding:'jsonParsed',commitment:'confirmed',transactionDetails:'full',rewards:false,maxSupportedTransactionVersion:1}]};
+      response=await fetch('https://solana-rpc.publicnode.com',{
+        method:'POST',headers:{'content-type':'application/json'},signal,
+        body:JSON.stringify({jsonrpc:'2.0',id:1,...query})});
+    }else{
+      response=await fetch(path,{signal,cache:'no-store'});
+      if(response.status===403||response.status===429){
+        this.useBrowserRpc=true;
+        return this.getJson(path);
+      }
+    }
+    if(!response.ok)throw new Error(`Mainnet RPC HTTP ${response.status}`);
     const payload=await response.json();
-    if(!response.ok)throw new Error(payload.error??`HTTP ${response.status}`);
+    if(payload.error)throw new Error(typeof payload.error==='string'?payload.error:`Mainnet RPC ${payload.error.code}: ${payload.error.message}`);
     return payload.result;
   }
   async poll(){
@@ -100,6 +117,7 @@ function render(){
   ui['sidebar-status'].textContent=state==='Sampled'?'Scanning confirmed blocks':state;
   ui['metric-connection'].textContent=state;
   ui['metric-subscriptions'].textContent=`${scanner.blocks} complete blocks read`;
+  ui['rpc-mode'].textContent=scanner.useBrowserRpc?'Browser → PublicNode':'Hosted RPC proxy';
   ui['metric-trades'].textContent=scanner.trades.toLocaleString();
   ui['metric-candidates'].textContent=scanner.candidates.length.toLocaleString();
   ui['metric-dropped'].textContent=scanner.dropped.toLocaleString();

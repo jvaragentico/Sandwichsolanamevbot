@@ -19,7 +19,7 @@ async function solanaRpc(env, method, params) {
     body:JSON.stringify({jsonrpc:'2.0',id:1,method,params}),
     signal:AbortSignal.timeout(10000),
   });
-  if (!upstream.ok) return response(upstream.status === 429 ? 429 : 502, {error:`Mainnet RPC HTTP ${upstream.status}`});
+  if (!upstream.ok) return response([403,429].includes(upstream.status) ? upstream.status : 502, {error:`Mainnet RPC HTTP ${upstream.status}`});
   const payload = await upstream.json();
   if (payload.error) return response(502, {error:`Mainnet RPC ${payload.error.code}: ${payload.error.message}`});
   // Full block responses can be large: cache only small responses, with a strict entry cap.
@@ -59,7 +59,7 @@ export default {
       headers:{
         'content-type':asset.type,
         'cache-control':'no-cache',
-        'content-security-policy':"default-src 'self'; connect-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'; base-uri 'none'",
+        'content-security-policy':"default-src 'self'; connect-src 'self' https://solana-rpc.publicnode.com; script-src 'self'; style-src 'self'; object-src 'none'; base-uri 'none'",
       },
     });
   },

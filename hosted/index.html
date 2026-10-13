@@ -42,7 +42,7 @@
           <div class="candidate-list hosted-candidates" id="candidate-list"><div class="empty-card">Scanning mainnet for matching sequences…</div></div>
         </article>
         <div class="right-col">
-          <article class="panel status-panel"><div class="panel-heading"><div><div class="eyebrow">SOURCE</div><h2>Live chain connection</h2></div></div><div class="status-detail"><span>Network</span><strong>Solana mainnet</strong></div><div class="status-detail"><span>Programs</span><strong>Pump + PumpSwap</strong></div><div class="status-detail"><span>Commitment</span><strong>Confirmed</strong></div><div class="status-detail"><span>Mode</span><strong>Same-origin RPC · read only</strong></div><p class="panel-copy status-copy" id="scanner-error">Waiting for data.</p></article>
+          <article class="panel status-panel"><div class="panel-heading"><div><div class="eyebrow">SOURCE</div><h2>Live chain connection</h2></div></div><div class="status-detail"><span>Network</span><strong>Solana mainnet</strong></div><div class="status-detail"><span>Programs</span><strong>Pump + PumpSwap</strong></div><div class="status-detail"><span>Commitment</span><strong>Confirmed</strong></div><div class="status-detail"><span>Mode</span><strong id="rpc-mode">Hosted RPC proxy</strong></div><p class="panel-copy status-copy" id="scanner-error">Waiting for data.</p></article>
           <article class="panel settings-panel" id="settings"><div class="panel-heading"><div><div class="eyebrow">CONFIGURE</div><h2>Scanner settings</h2></div></div>
             <label class="hosted-setting"><span>Watch one mint (optional)</span><input id="watch-mint" spellcheck="false" placeholder="Leave empty for both full programs"></label>
             <label class="hosted-setting"><span>Maximum slot window</span><input id="max-slots" type="number" min="2" max="16" step="1" value="8"></label>
@@ -55,3 +55,4 @@
   </div>
 </body>
 </html>
+

@@ -11,6 +11,7 @@ class Element {
 const nodes=new Map();
 globalThis.document={getElementById(id){if(!nodes.has(id))nodes.set(id,new Element());return nodes.get(id);},createElement(){return new Element();}};
 globalThis.window={addEventListener(){}};
+globalThis.location={origin:'https://test.invalid'};
 document.getElementById('max-slots').value='8';
 const alphabet='123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 function encode(bytes){let n=bytes.reduce((v,b)=>v*256n+BigInt(b),0n),s='';while(n){s=alphabet[Number(n%58n)]+s;n/=58n;}return s;}
@@ -24,9 +25,14 @@ function tx(owner,buy,n){
 }
 const block={blockTime:1000,transactions:[tx('A'.repeat(44),true,2),tx('B'.repeat(44),true,3),tx('A'.repeat(44),false,4)]};
 assert.equal(extractBlockTrades(block,100).length,3);
-let fail=false;
-globalThis.fetch=async path=>fail?Response.json({error:'Mainnet RPC HTTP 429'},{status:429}):
-  Response.json({result:path.startsWith('/api/signatures')?[{signature:signature(4),slot:100,err:null}]:block});
+let fail=false,proxyBlocked=false,directRequests=0;
+globalThis.fetch=async (path,options)=>{
+  const direct=path==='https://solana-rpc.publicnode.com';
+  if(direct)directRequests++;
+  if(fail||(!direct&&proxyBlocked))return Response.json({error:'Mainnet RPC HTTP 429'},{status:429});
+  const signatures=direct?JSON.parse(options.body).method==='getSignaturesForAddress':path.startsWith('/api/signatures');
+  return Response.json({result:signatures?[{signature:signature(4),slot:100,err:null}]:block});
+};
 const originalTimer=globalThis.setTimeout;
 globalThis.setTimeout=(callback,ms)=>{if(ms<1000)queueMicrotask(callback);return 0;};
 await import('../hosted/app.js');
@@ -45,5 +51,10 @@ nodes.get('max-slots').value='8';fail=true;nodes.get('save-settings').handlers.c
 assert.equal(nodes.get('metric-connection').textContent,'Degraded');
 assert.match(nodes.get('scanner-error').textContent,/429/);
 assert.equal(nodes.get('metric-candidates').textContent,'0');
+fail=false;proxyBlocked=true;nodes.get('save-settings').handlers.click();await settle();
+assert.equal(nodes.get('metric-candidates').textContent,'1');
+assert.equal(nodes.get('metric-connection').textContent,'Sampled');
+assert.equal(nodes.get('rpc-mode').textContent,'Browser → PublicNode');
+assert.equal(directRequests,5); // Two failed direct attempts, then two signature calls and one block.
 globalThis.setTimeout=originalTimer;
 console.log('Scanner → decoder → detector → transaction links, settings and RPC error flow passed (synthetic fixtures).');

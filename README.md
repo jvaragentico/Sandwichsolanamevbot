@@ -65,3 +65,5 @@ The Sites Worker source is `hosted/worker.js`; `scripts/build-hosted.mjs` embeds
 
 The hosted API exposes validated read-only `/api/signatures?address=...`, `/api/block?slot=...` and `/api/transaction?signature=...` routes. The block route requests parsed transactions through version 1; unsupported future versions fail visibly rather than being silently skipped. Tests cover same-slot ordering, pool isolation, all supported layouts, deduplication, three transaction links and error states using synthetic fixtures. Synthetic fixtures are never loaded by the live dashboard.
 
+If the hosted RPC proxy returns HTTP 403 or 429, the scanner switches for the session to PublicNode directly from the browser. Only public chain queries are sent; no wallet keys or private RPC credentials enter the browser. The source panel names the active connection. If both paths fail, the dashboard shows the error and retries after a cooldown. For a local browser check of this fallback, set `PREVIEW_RPC_STATUS=429` when running the preview; this injects proxy errors only in the local preview server, while the browser fetches real mainnet data.
+
