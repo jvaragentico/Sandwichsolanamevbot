@@ -12,12 +12,18 @@ export function setPatternTransactions(matches){
 }
 export async function loadReceipt(signature,source='Receipt lookup'){
   if(!/^[1-9A-HJ-NP-Za-km-z]{64,88}$/.test(signature))throw new Error('Enter a valid transaction signature.');
-  const response=await fetch(`/api/transaction?signature=${encodeURIComponent(signature)}`,{signal:AbortSignal.timeout(20000)});
-  const body=await response.json();if(!response.ok||body.error)throw new Error(body.error||`RPC HTTP ${response.status}`);
+  let endpoint='Hosted RPC proxy';
+  let response=await fetch(`/api/transaction?signature=${encodeURIComponent(signature)}`,{signal:AbortSignal.timeout(20000)});
+  if([403,429].includes(response.status)){
+    endpoint='Browser → PublicNode';
+    response=await fetch('https://solana-rpc.publicnode.com',{method:'POST',headers:{'content-type':'application/json'},signal:AbortSignal.timeout(20000),
+      body:JSON.stringify({jsonrpc:'2.0',id:1,method:'getTransaction',params:[signature,{encoding:'jsonParsed',commitment:'confirmed',maxSupportedTransactionVersion:1}]})});
+  }
+  const body=await response.json();if(!response.ok||body.error)throw new Error(typeof body.error==='string'?body.error:body.error?.message||`RPC HTTP ${response.status}. Retry later.`);
   const tx=body.result;if(!tx?.meta)throw new Error('Receipt not available. It may be too recent or outside RPC history.');
   if(tx.transaction?.signatures?.[0]!==signature)throw new Error('RPC returned a different transaction.');
   const first=tx.transaction.message?.accountKeys?.[0],owner=typeof first==='string'?first:first?.pubkey;
-  const row={signature,owner,slot:tx.slot,time:tx.blockTime?tx.blockTime*1000:null,source,role:'Fee payer',side:null,
+  const row={signature,owner,slot:tx.slot,time:tx.blockTime?tx.blockTime*1000:null,source,endpoint,role:'Fee payer',side:null,
     status:tx.meta.err?'Confirmed · failed':'Confirmed · successful',...receiptCosts(tx,owner)};
   manual.delete(signature);manual.set(signature,row);if(manual.size>100)manual.delete(manual.keys().next().value);
   render();return row;
@@ -36,7 +42,8 @@ function render(){
     const tr=el('tr'),tx=el('td');tx.append(link(row.signature,'tx'),el('small',`Slot ${row.slot??'—'} · ${row.time?new Date(row.time).toLocaleString():'Time unavailable'}`));
     const account=el('td');if(row.owner)account.append(link(row.owner,'account'));else account.append('—');account.append(el('small',row.role));
     const fee=el('td',amount(row.feeLamports));fee.append(el('small',`Payer: ${compact(row.feePayer)}`));
-    tr.append(tx,el('td',`${row.source}${row.side?` · ${row.side.toUpperCase()}`:''}`),el('td',row.status),account,fee,el('td',amount(row.walletSolChangeLamports)),el('td','Unverified'));
+    const origin=el('td',`${row.source}${row.side?` · ${row.side.toUpperCase()}`:''}`);if(row.endpoint)origin.append(el('small',row.endpoint));
+    tr.append(tx,origin,el('td',row.status),account,fee,el('td',amount(row.walletSolChangeLamports)),el('td','Unverified'));
     $('ledger-body').append(tr);
   }
   $('ledger-empty').hidden=!!total.count;

@@ -60,5 +60,17 @@ assert.equal(nodes.get('metric-candidates').textContent,'1');
 assert.equal(nodes.get('metric-connection').textContent,'Sampled');
 assert.equal(nodes.get('rpc-mode').textContent,'Browser → PublicNode');
 assert.equal(directRequests,5); // Two failed direct attempts, then two signature calls and one block.
+const {loadReceipt}=await import('../hosted/ledger-ui.js');
+let receiptRequests=0;
+globalThis.fetch=async(path,options)=>{
+  receiptRequests++;
+  if(path.startsWith('/api/transaction'))return Response.json({error:'Rate limit'},{status:429});
+  assert.equal(path,'https://solana-rpc.publicnode.com');assert.equal(JSON.parse(options.body).method,'getTransaction');
+  return Response.json({result:{slot:101,transaction:{signatures:[signature(5)],message:{accountKeys:[{pubkey:'payer'}]}},meta:{err:null,fee:5000,preBalances:[100000],postBalances:[95000]}}});
+};
+await loadReceipt(signature(5));await loadReceipt(signature(5));
+assert.equal(receiptRequests,4);assert.equal(nodes.get('ledger-count').textContent,'4');
+assert.equal(nodes.get('ledger-fees').textContent,'0.000005 SOL');assert.match(nodes.get('ledger-coverage').textContent,/1\/4/);
+assert.ok(descendants(nodes.get('ledger-body')).some(node=>node.textContent==='Browser → PublicNode'));
 globalThis.setTimeout=originalTimer;
 console.log('Scanner → decoder → detector → transaction links, settings and RPC error flow passed (synthetic fixtures).');
