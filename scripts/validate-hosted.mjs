@@ -11,7 +11,7 @@ assert.equal(typeof worker.default.fetch,'function');
 const home = await worker.default.fetch(new Request('https://example.test/'),{});
 assert.equal(home.status,200);
 assert.match(await home.text(),/Observed sandwich patterns/);
-for(const path of ['/simulation.js','/simulation-ui.js','/jito-analysis.js','/jito-ui.js','/bundles.js','/bundle-ui.js']){
+for(const path of ['/simulation.js','/simulation-ui.js','/jito-analysis.js','/jito-ui.js','/bundles.js','/bundle-ui.js','/costs.js','/ledger-ui.js','/liquidation-ui.js','/views.js']){
   const asset=await worker.default.fetch(new Request(`https://example.test${path}`),{});
   assert.equal(asset.status,200);assert.match(asset.headers.get('content-type'),/javascript/);
 }
@@ -58,4 +58,7 @@ try {
   assert.equal((await worker.default.fetch(new Request(`https://example.test/api/bundle?id=${id}`),{})).status,502);
 } finally { globalThis.fetch=originalFetch; }
 console.log('Worker artifact and routes validated');
+const model=await worker.default.fetch(new Request('https://example.test/api/liquidation-model?collateral=1000&debt=900&threshold=80&repay=100&closeFactor=50&bonus=5&drop=1&costs=1&solPrice=100'),{});
+assert.equal(model.status,200);assert.ok(Math.abs((await model.json()).result.estimatedPnlUsd-2.95)<1e-9);
+assert.equal((await worker.default.fetch(new Request('https://example.test/api/liquidation-model'),{})).status,400);
 

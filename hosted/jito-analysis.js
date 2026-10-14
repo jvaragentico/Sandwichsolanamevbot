@@ -45,7 +45,7 @@ export function analyzeJitoCsv(text){
     if(isLanded){landed++;tips+=tip;}
     if(isRejected)rejected++;
     if(row.errorType)errors.set(row.errorType,(errors.get(row.errorType)??0)+1);
-    rows.push({signature:row.txn2Signature,reportedLanded:isLanded,reportedAccepted:isAccepted,reportedRejected:isRejected});
+    rows.push({signature:row.txn2Signature,timestamp:row.timestamp,expectedProfitRaw:expected.toString(),sourceMint:row.sourceMint,tipLamports:tip.toString(),reportedLanded:isLanded,reportedAccepted:isAccepted,reportedRejected:isRejected});
   }
   if(!rows.length)throw new Error('CSV has no trade records.');
   return {schemaVersion:1,source:'imported-jito-csv',upstream:JITO_SOURCE,records:rows.length,repeatedHeaders,

@@ -1,4 +1,5 @@
 import { PROGRAMS, extractBlockTrades, SandwichDetector } from './analyzer.js';
+import { setPatternTransactions } from './ledger-ui.js';
 
 const names = ['sidebar-dot','sidebar-status','metric-connection','metric-subscriptions','metric-trades','metric-candidates','metric-dropped','metric-last','stream-chip','stream-label','candidate-list','scanner-error','rpc-mode','watch-mint','max-slots','save-settings','setting-feedback'];
 const ui = Object.fromEntries(names.map(id => [id, document.getElementById(id)]));
@@ -126,6 +127,7 @@ function render(){
   ui['stream-chip'].classList.toggle('degraded',true);
   ui['scanner-error'].textContent=scanner.error?`${scanner.error}. Retrying automatically${scanner.error.includes('429')?' after a 30-second cooldown':''}.`:`Real mainnet · last poll ${clock(scanner.lastPoll)}. One complete recent block per 15-second cycle; coverage is sampled. ${scanner.dropped} skipped blocks or signature-window gaps. Scans while this page is open.`;
   renderCandidates();
+  setPatternTransactions(scanner.candidates);
 }
 function options(){
   const mint=ui['watch-mint'].value.trim(),maxSlots=Number(ui['max-slots'].value);

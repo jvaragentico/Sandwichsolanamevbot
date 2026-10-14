@@ -15,16 +15,21 @@ for (const [route,file,type] of [
   ['/jito-ui.js','jito-ui.js','text/javascript; charset=utf-8'],
   ['/bundles.js','bundles.js','text/javascript; charset=utf-8'],
   ['/bundle-ui.js','bundle-ui.js','text/javascript; charset=utf-8'],
+  ['/costs.js','costs.js','text/javascript; charset=utf-8'],
+  ['/ledger-ui.js','ledger-ui.js','text/javascript; charset=utf-8'],
+  ['/liquidation-ui.js','liquidation-ui.js','text/javascript; charset=utf-8'],
+  ['/views.js','views.js','text/javascript; charset=utf-8'],
 ]) {
   assets[route] = { body: await readFile(resolve(root,'hosted',file),'utf8'), type };
 }
 const worker = await readFile(resolve(root,'hosted/worker.js'),'utf8');
+const liquidation = (await readFile(resolve(root,'hosted/liquidation.js'),'utf8')).replace('export function liquidationModel','function liquidationModel');
 const manifest = await readFile(resolve(root,'.openai/hosting.json'),'utf8');
 for (const file of ['index.html','style.css','app.js','analyzer.js']) {
   await rm(resolve(root,'dist',file),{force:true});
 }
 await mkdir(resolve(root,'dist/server'),{recursive:true});
 await mkdir(resolve(root,'dist/.openai'),{recursive:true});
-await writeFile(resolve(root,'dist/server/index.js'),`const ASSETS = ${JSON.stringify(assets)};\n${worker}`);
+await writeFile(resolve(root,'dist/server/index.js'),`const ASSETS = ${JSON.stringify(assets)};\n${liquidation}\n${worker}`);
 await writeFile(resolve(root,'dist/.openai/hosting.json'),manifest);
 console.log('Built Sites Worker artifact');

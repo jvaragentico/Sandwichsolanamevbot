@@ -11,6 +11,8 @@
   <script type="module" src="./simulation-ui.js"></script>
   <script type="module" src="./jito-ui.js"></script>
   <script type="module" src="./bundle-ui.js"></script>
+  <script type="module" src="./liquidation-ui.js"></script>
+  <script type="module" src="./views.js"></script>
 </head>
 <body>
   <div class="shell">
@@ -19,6 +21,8 @@
       <nav aria-label="Main navigation">
         <a class="active" href="#overview">◉ <span>Overview</span></a>
         <a href="#patterns">◇ <span>Sandwich patterns</span></a>
+        <a href="#transactions">≡ <span>Transactions &amp; P&amp;L</span></a>
+        <a href="#liquidation">◈ <span>Liquidation simulation</span></a>
         <a href="#simulation">▷ <span>Cross-slot simulator</span></a>
         <a href="#bundles">▣ <span>Bundle monitor</span></a>
         <a href="#settings">⚙ <span>Scanner settings</span></a>
@@ -28,20 +32,37 @@
 
     <main id="overview">
       <header class="topbar"><div class="crumb">Workspace <span>/</span> Pump Flowwatch</div><div class="chain-pill"><span class="pulse"></span> SOLANA MAINNET</div></header>
-      <section class="hero">
+      <div class="view-switch"><div role="group" aria-label="Dashboard view"><button type="button" data-mode="live" aria-pressed="true">Live mainnet</button><button type="button" data-mode="simulation" aria-pressed="false">Simulation only</button></div><p id="view-note">LIVE MAINNET · Read-only data · Trading execution disabled</p></div>
+      <section class="hero" data-view="live">
         <div><div class="eyebrow">LIVE SANDWICH PATTERN MONITOR</div><h1>Only the pattern.<br><em>As it lands.</em></h1><p>The scanner watches confirmed Pump and PumpSwap transactions. This feed displays only three-trade sequences matching the sandwich pattern.</p></div>
         <div class="hero-graphic" aria-hidden="true"><div class="orb orb-one"></div><div class="orb orb-two"></div><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="center-glyph">◈</div></div>
       </section>
-      <div class="notice"><span class="notice-icon">ⓘ</span><div><strong>Suspected sandwiches · linked on-chain evidence</strong><span>Three ordered trades in the same pool: one wallet trades before and reverses after another wallet. Includes same-slot sequences. Intent and profit are unverified.</span></div></div>
+      <div class="notice" data-view="live"><span class="notice-icon">ⓘ</span><div><strong>Suspected sandwiches · linked on-chain evidence</strong><span>Three ordered trades in the same pool: one wallet trades before and reverses after another wallet. Includes same-slot sequences. Intent and profit are unverified.</span></div></div>
 
-      <section class="metrics" aria-label="Scanner metrics">
+      <section class="metrics" aria-label="Scanner metrics" data-view="live">
         <article class="metric"><span>Scanner status</span><strong id="metric-connection">Connecting</strong><small id="metric-subscriptions">0 subscriptions</small></article>
         <article class="metric"><span>Swaps parsed</span><strong id="metric-trades">0</strong><small>Internal detection input</small></article>
         <article class="metric"><span>Suspected sandwiches</span><strong id="metric-candidates">0</strong><small>Up to 100 retained per session</small></article>
         <article class="metric"><span>Skipped blocks / gaps</span><strong id="metric-dropped">0</strong><small id="metric-last">Last swap: —</small></article>
       </section>
 
-      <section class="grid hosted-grid">
+      <section class="panel ledger-panel" id="transactions" aria-labelledby="ledger-title" data-view="live">
+        <div class="panel-heading"><div><div class="eyebrow">LIVE MAINNET · RECEIPT EVIDENCE</div><h2 id="ledger-title">Transactions, costs &amp; P&amp;L</h2></div><span class="simulation-badge">EXECUTION DISABLED</span></div>
+        <p class="panel-copy">This app submits no transactions. This table shows observed pattern transactions and receipts you load. Network fees come from confirmed mainnet receipts; realized trading profit is not established.</p>
+        <div class="ledger-metrics">
+          <div><small>Transactions loaded</small><strong id="ledger-count">0</strong><span>Unique signatures</span></div>
+          <div><small>Known network fees</small><strong id="ledger-fees">—</strong><span id="ledger-coverage">Waiting for receipts</span></div>
+          <div><small>Realized P&amp;L</small><strong class="pnl-unknown">Unverified</strong><span>Full position accounting required</span></div>
+          <div><small>Submitted by this app</small><strong>0</strong><span>Read-only mainnet connection</span></div>
+        </div>
+        <form id="receipt-form" class="receipt-form"><label for="receipt-signature">Load an existing mainnet transaction</label><div><input id="receipt-signature" type="text" placeholder="Transaction signature" required maxlength="88"><button type="submit" id="receipt-load">Load receipt</button><button type="button" id="ledger-export" disabled>Export transactions</button></div><p id="receipt-status" role="status"></p></form>
+        <div class="table-wrap" tabindex="0" aria-label="Mainnet transaction costs"><table><thead><tr><th>Transaction / time</th><th>Source / action</th><th>Status</th><th>Wallet / role</th><th>Network fee</th><th>Wallet SOL change</th><th>Realized P&amp;L</th></tr></thead><tbody id="ledger-body"></tbody></table></div>
+        <p id="ledger-empty" class="panel-copy">No transaction receipts loaded yet. Matches appear automatically, or paste a signature above.</p>
+        <p class="panel-copy">Network fee includes base and priority fees. Tips, DEX charges and rent are not separately measured. Wallet SOL change includes fees and transfers; SPL token value is excluded. Do not treat it as profit or subtract the fee twice.</p>
+        <p id="ledger-scope" class="panel-copy"></p>
+      </section>
+
+      <section class="grid hosted-grid" data-view="live">
         <article class="panel" id="patterns"><div class="panel-heading"><div><div class="eyebrow">MATCHED ACTIVITY</div><h2>Observed sandwich patterns</h2></div><span class="live-chip degraded" id="stream-chip"><span class="pulse"></span><span id="stream-label">CONNECTING</span></span></div>
           <p class="panel-copy">Only suspected sandwiches appear here. Each card links all three transactions, the shared pool and the matching wallet. Positions (#) are one-based within the block. Latest 30 shown.</p>
           <div class="candidate-list hosted-candidates" id="candidate-list"><div class="empty-card">Scanning mainnet for matching sequences…</div></div>
@@ -55,7 +76,24 @@
           </article>
         </div>
       </section>
-      <section class="panel simulation-panel" id="simulation" aria-labelledby="sim-title">
+      <section class="panel simulation-panel" id="liquidation" data-view="simulation" hidden>
+        <div class="panel-heading"><div><div class="eyebrow">SIMULATION ONLY · GENERIC ASSUMPTIONS</div><h2>Liquidation capital, costs &amp; P&amp;L</h2></div><span class="simulation-badge">NO LIVE EXECUTION</span></div>
+        <p class="panel-copy">Model a single collateral / debt position. No lending protocol or live borrower is connected. These are editable examples, not an opportunity feed. Live execution requires a protocol adapter and an explicit spending cap.</p>
+        <form id="liquidation-form"><div class="sim-controls">
+          <label>Collateral value · USD<input id="liq-collateral-input" type="number" min="0.01" max="1000000000" step="any" value="1000" required></label>
+          <label>Debt value · USD<input id="liq-debt-input" type="number" min="0.01" max="1000000000" step="any" value="900" required></label>
+          <label>Liquidation threshold · %<input id="liq-threshold-input" type="number" min="1" max="100" step="any" value="80" required></label>
+          <label>Repayment capital · USD<input id="liq-repay-input" type="number" min="0.01" max="1000000000" step="any" value="100" required></label>
+          <label>Maximum debt repaid · %<input id="liq-closeFactor-input" type="number" min="1" max="100" step="any" value="50" required></label>
+          <label>Collateral bonus · %<input id="liq-bonus-input" type="number" min="0" max="50" step="any" value="5" required></label>
+          <label>Exit price loss / slippage · %<input id="liq-drop-input" type="number" min="0" max="100" step="any" value="1" required></label>
+          <label>All other costs · USD<input id="liq-costs-input" type="number" min="0" max="1000000000" step="any" value="1" required><small>Include network fees, tips, DEX and protocol fees</small></label>
+          <label>Assumed SOL price · USD<input id="liq-solPrice-input" type="number" min="0.01" max="1000000" step="any" value="100" required><small>User assumption, not a live price</small></label>
+        </div><div class="sim-actions"><button type="submit">Simulate liquidation</button></div><p id="liq-status" role="status">Enter assumptions and run the simulation.</p>
+        <div class="ledger-metrics"><div><small>Capital + costs · assumed</small><strong id="liq-capital">—</strong></div><div><small>Collateral received · modeled</small><strong id="liq-collateral">—</strong></div><div><small>Sale proceeds · modeled</small><strong id="liq-proceeds">—</strong></div><div><small>Net P&amp;L · simulated</small><strong id="liq-pnl">—</strong></div></div>
+        <p id="liq-detail"></p><p>Estimated net P&amp;L = collateral sale proceeds − repayment − other costs. Execution and profit remain unproven.</p></form>
+      </section>
+      <section class="panel simulation-panel" id="simulation" aria-labelledby="sim-title" data-view="simulation" hidden>
         <div class="panel-heading"><div><div class="eyebrow">CONTROLLED EXPERIMENT</div><h2 id="sim-title">Cross-slot simulator</h2></div><span class="simulation-badge">SYNTHETIC · LOCAL ONLY</span></div>
         <p class="panel-copy">Replay controlled trades through the live scanner's decoder and detector. These fixtures run in your browser; they are not mainnet or Devnet transactions and do not change the live counters.</p>
         <form id="sim-form">
@@ -87,13 +125,13 @@
           <p id="sim-error" role="alert"></p>
         </form>
       </section>
-      <section class="panel simulation-panel" id="jito-analysis" aria-labelledby="jito-title">
+      <section class="panel simulation-panel" id="jito-analysis" aria-labelledby="jito-title" data-view="live">
         <div class="panel-heading"><div><div class="eyebrow">JITO MEV-BOT INTEGRATION</div><h2 id="jito-title">Trade-log evidence</h2></div><span class="simulation-badge">LOCAL CSV ANALYSIS</span></div>
         <p class="panel-copy">Import trades.csv from <a href="https://github.com/jito-labs/mev-bot/tree/f02016bb646a99a3542cfd54cb7e13160d96289e" target="_blank" rel="noopener noreferrer">Jito's backrun arbitrage bot</a>. Its analysis notebook is pinned in this project under Apache-2.0. Files are processed in your browser and are not uploaded.</p>
         <p class="panel-copy">The upstream bot is unmaintained and has no Pump adapter. This integration analyzes its logs; it does not run its trading engine. <a href="https://docs.jito.wtf/lowlatencytxnsend/#bundles-api-v1" target="_blank" rel="noopener noreferrer">Jito bundles execute within one slot</a>; a cross-slot simulation is not an atomic Jito bundle.</p>
         <div class="jito-import"><label for="jito-file">Select Jito trades.csv · up to 2 MB</label><input id="jito-file" type="file" accept=".csv,text/csv"><div class="sim-actions"><button id="jito-export" type="button" disabled>Export analysis JSON</button></div><p id="jito-error" role="alert"></p><div id="jito-results" aria-live="polite"></div></div>
       </section>
-      <section class="panel simulation-panel" id="bundles" aria-labelledby="bundle-title">
+      <section class="panel simulation-panel" id="bundles" aria-labelledby="bundle-title" data-view="live">
         <div class="panel-heading"><div><div class="eyebrow">JITO BUNDLES</div><h2 id="bundle-title">Bundle monitor &amp; rule model</h2></div><span class="simulation-badge">READ ONLY</span></div>
         <p class="panel-copy">Look up an existing mainnet bundle ID. Receipt history is limited; recent inflight status covers roughly five minutes. Unknown does not mean failed. Status checks run when you press Look up. <a href="https://docs.jito.wtf/lowlatencytxnsend/" target="_blank" rel="noopener noreferrer">API documentation</a></p>
         <form id="bundle-lookup"><div class="sim-controls">

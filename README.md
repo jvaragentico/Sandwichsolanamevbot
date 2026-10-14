@@ -89,3 +89,14 @@ Open `#bundles`. The read-only `GET /api/bundle?id=<64-character-hex>&mode=recei
 
 The local rule model accepts one to five ordered synthetic slot numbers and an optional failure position. It models single-slot atomic success or rollback. It performs no Solana VM simulation, transaction construction, signing, submission, auction or profitability test. Cross-slot sequences cannot form one atomic Jito bundle. There are no wallet keys or bundle submission endpoints.
 
+
+## Transaction costs and dashboard views
+
+Live mainnet and Simulation only views keep receipt evidence separate from modeled results. Neither view has a trading or funding endpoint.
+
+The Transactions & P&L table collects unique signatures from retained observed patterns plus up to 100 manually loaded receipts. Bundle receipts can be added with Load transaction costs. Network fee is taken from meta.fee; wallet native SOL change is postBalances minus preBalances at the named account. Missing or unsafe numeric values remain unavailable. Fees are deduplicated by signature. Totals cover loaded receipts, including failed manual receipts, and do not include separate tips, DEX costs or other unobserved activity. Native SOL change is not realized profit. All rows are session-only; export JSON before reloading.
+
+The imported Jito CSV table displays per-record tip estimates and expected P&L, preserving raw token units except WSOL (9 decimals). It does not claim actual payments or realized profit.
+
+The generic liquidation calculator uses GET /api/liquidation-model with editable USD assumptions. Health factor = collateral value × threshold / debt; eligibility requires below 1. Repayment is limited by the configured close factor and available collateral including bonus. Estimated P&L subtracts repayment and all supplied other costs from modeled collateral sale proceeds. SOL equivalent uses a user-supplied price and is not a funding instruction. No protocol-specific obligation, oracle, liquidation transaction, wallet, or live trading engine is connected. Live liquidation execution remains unavailable pending a protocol adapter and explicit spending limits.
+

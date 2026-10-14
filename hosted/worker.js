@@ -34,6 +34,10 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (request.method !== 'GET') return response(405,{error:'Method not allowed'});
+    if (url.pathname === '/api/liquidation-model') {
+      try{return response(200,{result:liquidationModel(Object.fromEntries(url.searchParams))});}
+      catch(error){return response(400,{error:error.message});}
+    }
     if (url.pathname === '/api/bundle') {
       const id=url.searchParams.get('id')||'',mode=url.searchParams.get('mode')||'receipts';
       if(!/^[a-f0-9]{64}$/.test(id)||!['receipts','inflight'].includes(mode))return response(400,{error:'Invalid bundle ID or status mode'});

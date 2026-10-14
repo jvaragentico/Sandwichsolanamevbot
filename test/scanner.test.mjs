@@ -41,6 +41,9 @@ await settle();
 assert.equal(nodes.get('metric-candidates').textContent,'1');
 assert.equal(nodes.get('metric-trades').textContent,'3');
 assert.equal(nodes.get('metric-connection').textContent,'Sampled');
+assert.equal(nodes.get('ledger-count').textContent,'3');
+assert.equal(nodes.get('ledger-fees').textContent,'Unavailable');
+assert.match(nodes.get('ledger-coverage').textContent,/0\/3/);
 const descendants=node=>[node,...(node.children??[]).filter(child=>typeof child==='object').flatMap(descendants)];
 const links=descendants(nodes.get('candidate-list')).filter(node=>node.href?.includes('/tx/'));
 assert.deepEqual(links.map(node=>node.href),[2,3,4].map(n=>`https://solscan.io/tx/${signature(n)}`));
@@ -51,6 +54,7 @@ nodes.get('max-slots').value='8';fail=true;nodes.get('save-settings').handlers.c
 assert.equal(nodes.get('metric-connection').textContent,'Degraded');
 assert.match(nodes.get('scanner-error').textContent,/429/);
 assert.equal(nodes.get('metric-candidates').textContent,'0');
+assert.equal(nodes.get('ledger-count').textContent,'0');
 fail=false;proxyBlocked=true;nodes.get('save-settings').handlers.click();await settle();
 assert.equal(nodes.get('metric-candidates').textContent,'1');
 assert.equal(nodes.get('metric-connection').textContent,'Sampled');

@@ -1,4 +1,5 @@
 import {simulateBundle,summarizeBundle} from './bundles.js';
+import {loadReceipt} from './ledger-ui.js';
 const $=id=>document.getElementById(id);
 const node=(tag,value)=>{const el=document.createElement(tag);el.textContent=value;return el;};
 let revision=0,controller;
@@ -20,6 +21,20 @@ $('bundle-lookup').addEventListener('submit',async event=>{
     for(const [index,sig] of result.transactions.entries()){
       const link=node('a',`Transaction ${index+1}: ${sig.slice(0,8)}…${sig.slice(-6)}`);link.href=`https://solscan.io/tx/${sig}`;link.target='_blank';link.rel='noopener noreferrer';
       const line=node('p','');line.append(link);$('bundle-results').append(line);
+    }
+    if(result.transactions.length){
+      const button=node('button','Load transaction costs'),status=node('p','');button.type='button';button.className='receipt-button';
+      button.addEventListener('click',async()=>{
+        button.disabled=true;let loaded=0,failed=0;
+        for(const signature of result.transactions){
+          if(current!==revision)break;
+          try{await loadReceipt(signature,'Bundle receipt');loaded++;}catch{failed++;}
+          status.textContent=`${loaded} receipts added to Transactions & P&L. ${failed} unavailable.`;
+          await new Promise(resolve=>setTimeout(resolve,400));
+        }
+        button.disabled=false;
+      });
+      $('bundle-results').append(button,status);
     }
   }catch(error){if(current===revision)$('bundle-status').textContent=`Lookup unavailable: ${error.message}. Retry later.`;}
 });

@@ -1,4 +1,5 @@
 import { LAYOUTS } from './layouts.js';
+import { receiptCosts } from './costs.js';
 
 export const PROGRAMS = Object.freeze({
   Pump: '6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P',
@@ -115,7 +116,7 @@ export function extractBlockTrades(block, slot) {
     if (swap.side === 'buy' ? delta <= 0n : delta >= 0n) continue;
     const signature = item.transaction.signatures?.[0];
     if (!signature) continue;
-    trades.push({...swap, signature, slot, transactionIndex,
+    trades.push({...swap, ...receiptCosts(item,swap.owner), signature, slot, transactionIndex,
       time:block.blockTime ? block.blockTime * 1000 : null,
       tokenAmount:(delta < 0n ? -delta : delta).toString()});
   }
